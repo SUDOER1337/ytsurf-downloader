@@ -42,6 +42,7 @@ download_dir="${XDG_DOWNLOAD_DIR:-$HOME/Downloads}"
 notify="$DEFAULT_NOTIFY"
 
 query=""
+playlist_url=""
 TMPDIR=""
 
 command -v notify-send >/dev/null 2>&1 && notify=true || notify=false
@@ -72,6 +73,7 @@ OPTIONS:
   --download, -d  Download instead of playing
   --format, -f    Interactively choose format/resolution
   --limit, -l <N> Limit search results (default: $DEFAULT_LIMIT)
+  --playlist, -p <URL>  Download an entire playlist, channel, or user uploads
   --debug         Enable debug logging
   --help, -h      Show this help message
   --version       Show version info
@@ -90,6 +92,8 @@ EXAMPLES:
   $SCRIPT_NAME lo-fi study mix
   $SCRIPT_NAME --audio orchestral soundtrack
   $SCRIPT_NAME --download --format jazz piano
+  $SCRIPT_NAME --playlist 'https://youtube.com/playlist?list=...'
+  $SCRIPT_NAME --audio --playlist 'https://youtube.com/playlist?list=...'
 EOF
 }
 
@@ -192,6 +196,16 @@ parse_arguments() {
         exit 1
       fi
       ;;
+    --playlist | -p)
+      shift
+      if [[ -n "${1:-}" ]]; then
+        playlist_url="$1"
+        shift
+      else
+        send_notification "Error" "--playlist requires a URL"
+        exit 1
+      fi
+      ;;
     *)
       query="$*"
       break
@@ -285,6 +299,31 @@ play_video() {
   [[ -n "$fmt" ]] && player="$player --ytdl-format=\"$fmt\""
   player="$player $video_url"
   eval "$player"
+}
+
+# -- Playlist download --
+
+download_playlist() {
+  local playlist_url="$1"
+
+  mkdir -p "$download_dir"
+  send_notification "Ytsurf" "Downloading playlist to $download_dir..."
+
+  local yt_dlp_args=(
+    -o "$download_dir/%(playlist_title)s/%(playlist_index)02d - %(title)s [%(id)s].%(ext)s"
+    --yes-playlist
+    --quiet
+  )
+
+  if [[ "$audio_only" = true ]]; then
+    yt_dlp_args+=(-x --audio-format mp3)
+  else
+    yt_dlp_args+=(--remux-video mp4)
+    [[ -n "$format_code" ]] && yt_dlp_args+=(--format "$format_code")
+  fi
+
+  yt-dlp "${yt_dlp_args[@]}" "$playlist_url"
+  send_notification "Ytsurf" "Playlist download complete"
 }
 
 #=============================================================================
@@ -479,6 +518,10 @@ handle_selection() {
 #=============================================================================
 
 main() {
+  if [[ -n "$playlist_url" ]]; then
+    download_playlist "$playlist_url"
+    return 0
+  fi
   while :; do
     handle_selection
   done

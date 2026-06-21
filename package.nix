@@ -1,5 +1,4 @@
 {
-  chafa,
   curl,
   ffmpeg,
   fzf,
@@ -12,8 +11,8 @@
   yt-dlp,
 }:
 stdenvNoCC.mkDerivation {
-  pname = "ytsurf";
-  version = "3.1.7"; # update when you tag releases
+  pname = "ytsurf-downloader";
+  version = "1.0.0";
 
   nativeBuildInputs = [makeWrapper];
 
@@ -24,11 +23,10 @@ stdenvNoCC.mkDerivation {
   installPhase = ''
     runHook preInstall
 
-    install -Dm777 ${./ytsurf.sh} $out/bin/ytsurf
-    wrapProgram $out/bin/ytsurf \
+    install -Dm777 ${./ytsurf.sh} $out/bin/ytsurf-downloader
+    wrapProgram $out/bin/ytsurf-downloader \
       --prefix PATH : ${
       lib.makeBinPath [
-        chafa
         curl
         ffmpeg
         fzf
@@ -42,5 +40,5 @@ stdenvNoCC.mkDerivation {
     runHook postInstall
   '';
 
-  meta.mainProgram = "ytsurf";
+  meta.mainProgram = "ytsurf-downloader";
 }

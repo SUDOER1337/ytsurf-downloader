@@ -1,207 +1,47 @@
-# ytsurf
+# ytsurf-downloader
 
-YouTube in your terminal. Clean and distraction-free.
-<p align="center">
-  <a href="https://discord.gg/z6u6zwwedz" target="_blank" rel="noopener noreferrer">
-    <img src="https://img.shields.io/badge/Discord-Join%20the%20community-5865F2?logo=discord&logoColor=white" alt="Join our Discord" />
-  </a>
-</p>
-<p align="center">
-  <img width="720" alt="demo" src="https://github.com/user-attachments/assets/0771f53b-ad16-41a2-9938-9aaaf0eaa1ae" />
-</p>
+Search, watch, or download YouTube videos from your terminal. A stripped fork of [ytsurf](https://github.com/Stan-breaks/ytsurf) — no subscriptions, history, playlists, or syncplay.
 
+## Dependencies
 
+**Required:** `bash`, `yt-dlp`, `mpv`, `jq`, `curl`, `perl`, `fzf`, `ffmpeg`
+**Optional:** `notify-send`
 
-## Features
-
-- Syncplay support – watch videos together in sync
-- Audio-only playback & downloads
-- Download videos or audio
-- Interactive format/quality selection when playing or downloading
-- External config file
-- Playback history and quick re-play
-- Adjustable search result limit
-- Custom download directory
-- Self-update (--update) for manual installations only
-- Copy short YouTube URLs to clipboard or print them
-- Channel subscriptions with a personalized feed
-- Import subscriptions from youtube
-
-
-| Selector          | Features                                        | Best For                                       |
-| ----------------- | ----------------------------------------------- | ---------------------------------------------- |
-| **fzf** (default) | Terminal-based, thumbnail previews, lightweight | Most users (fast + previews)                   |
-| **rofi**          | GUI menu, keyboard-driven, clean look           | Users who prefer a graphical menu              |
-| **sentaku**       | Very minimal, no previews                       | Systems without Go/`fzf` support               |
-| **tv**            | Terminal-based, similar to *telescope.nvim*     | Users who want a fancier terminal-based picker |
-
-
-
-## Installation
-
-### Arch Linux (AUR)
-
-```bash
-yay -S ytsurf
-# or
-paru -S ytsurf
-```
-
-### Homebrew
-
-```bash
-brew tap stan-breaks/ytsurf https://github.com/stan-breaks/ytsurf
-brew install stan-breaks/ytsurf/ytsurf
-```
-
-### NixOS (system-wide, flakes)
-
-In your flake.nix (system config)
-```nix
-
-{
-  inputs = {
-    nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
-    ytsurf.url = "github:Stan-breaks/ytsurf";
-  };
-
-  outputs = { self, nixpkgs, ytsurf, ... }:
-  let
-    system = "x86_64-linux";
-  in {
-    nixosConfigurations.thanaros = nixpkgs.lib.nixosSystem {
-      inherit system;
-      modules = [
-        ({ pkgs, ... }: {
-          nixpkgs.overlays = [
-            ytsurf.overlays.default
-          ];
-
-          environment.systemPackages = with pkgs; [
-            ytsurf
-          ];
-        })
-      ];
-    };
-  };
-}
-```
-
-### Manual Installation
-
-```bash
-mkdir -p ~/.local/bin
-curl -o ~/.local/bin/ytsurf https://raw.githubusercontent.com/Stan-breaks/ytsurf/main/ytsurf.sh
-chmod +x ~/.local/bin/ytsurf
-```
-
-Make sure `~/.local/bin` is in your **PATH**.
-
-
-##  Dependencies
-
-* **Required:** `bash`, `yt-dlp`, `jq`, `curl`, `mpv`, `fzf`, `chafa`, `ffmpeg`
-* **Optional:** `rofi`, `sentaku`, `syncplay`
-
-Arch Linux install:
-
-```bash
-sudo pacman -S yt-dlp jq curl mpv fzf chafa rofi ffmpeg
-```
-
-
-##  Usage
+## Usage
 
 ```bash
 USAGE:
-  ytsurf [OPTIONS] [QUERY]
+  ytsurf-downloader [OPTIONS] [QUERY]
 
 OPTIONS:
-  --audio         Play/download audio-only version
-  --download      Download instead of playing
-  --format        Interactively choose format/resolution
-  --rofi          Use rofi instead of fzf for menus
-  --syncplay      Watch youtube with friend from the terminal
-  --subscribe, -s Add a channel to subscriptions locally
-  --unsubscribe   Remove a channel to subscriptions locally
-  --import-subs   Import subscriptions from youtube
-  --feed,-F       View videos from your feed
-  --sentaku       Use sentaku instead of fzf or rofi(for system that can't compile go)
-  --history       Show and replay from viewing history
-  --limit <N>     Limit number of search results (default: $DEFAULT_LIMIT)
-  --edit, -e      edit the configuration file
-  --help, -h      Show this help message
-  --version       Show version info
-  --copy-url      Copy or display the video link
-  --watch, -w     Watch videos directly without any options after choosing a video
+  --audio         Download/watch audio-only
+  --download, -d  Download instead of playing
+  --format, -f    Choose format/resolution interactively
+  --limit, -l <N> Limit search results (default: 15)
+  --debug         Enable debug logging
+  --help, -h      Show help
+  --version       Show version
+
+KEYBINDINGS (fzf):
+  Enter / w       Watch with mpv
+  d               Download
 
 EXAMPLES:
-  ytsurf lo-fi study mix
-  ytsurf --audio orchestral soundtrack
-  ytsurf --download --format jazz piano
-  ytsurf --history
+  ytsurf-downloader lo-fi study mix
+  ytsurf-downloader --audio orchestral soundtrack
+  ytsurf-downloader --download --format jazz piano
 ```
 
-Run `ytsurf` without arguments to enter interactive mode.
+## Configuration
 
-
-##  Configuration
-
-Defaults check for default config in `~/.config/ytsurf/config`.
-CLI flags always override config values.
-
-**Example config:**
+`~/.config/ytsurf-downloader/config` — CLI flags override.
 
 ```bash
-# ~/.config/ytsurf/config
-
-# Set a higher default search limit
 limit=25
-
-# Always use audio-only mode
 audio_only=true
-
-# Set a custom download directory
 download_dir="$HOME/Videos/YouTube"
 ```
 
-##  Troubleshooting
-MPV doesn't play the selected video
+## License
 
-Some systems have mpv configured to prefer youtube-dl instead of yt-dlp, which causes ytsurf to show “playing…” without actually starting playback.
-
-Fix: Rename your yt-dlp binary so that MPV uses it automatically:
-
-```bash
-sudo mv /usr/bin/yt-dlp /usr/bin/youtube-dl
-```
-
-Or create a symlink instead (safer):
-```bash
-sudo ln -s /usr/bin/yt-dlp /usr/local/bin/youtube-dl
-```
-
-
-MPV will now correctly pick up yt-dlp for streaming.
-
-
-##  Contributing
-
-Contributions are welcome! Please see [CONTRIBUTING.md](CONTRIBUTING.md).
-Check out [FUTURE_FEATURES.md](FUTURE_FEATURES.md) for upcoming ideas.
-
-
-##  License
-
-Released under the [GNU General Public License v3.0](LICENSE).
-
-
-##  Star History
-
-<a href="https://www.star-history.com/#Stan-breaks/ytsurf&Date">
- <picture>
-   <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/svg?repos=Stan-breaks/ytsurf&type=Date&theme=dark" />
-   <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/svg?repos=Stan-breaks/ytsurf&type=Date" />
-   <img alt="Star History Chart" src="https://api.star-history.com/svg?repos=Stan-breaks/ytsurf&type=Date" />
- </picture>
-</a>
+GNU General Public License v3.0

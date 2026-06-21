@@ -1,11 +1,11 @@
-class Ytsurf < Formula
-  desc "YouTube in your terminal. Clean and distraction-free"
+class YtsurfDownloader < Formula
+  desc "Search, watch, or download YouTube videos from your terminal"
   homepage ""
-  url "https://github.com/Stan-breaks/ytsurf/archive/refs/tags/v3.1.7.zip"
-  sha256 "6a12afed36ea7a62036291e603350b1301ab7cce64fbe723e8ba20d5232ea6f9"
-  version "3.1.7"
+  url "https://github.com/<your-org>/ytsurf-downloader/archive/refs/tags/v1.0.0.zip"
+  sha256 ""
+  version "1.0.0"
   license "GPL-3.0"
-  
+
   depends_on "bash"
   depends_on "yt-dlp"
   depends_on "jq"
@@ -13,15 +13,14 @@ class Ytsurf < Formula
   depends_on "mpv"
   depends_on "perl"
   depends_on "fzf"
-  depends_on "chafa"
   depends_on "ffmpeg"
 
   def install
-    system "mv ytsurf.sh ytsurf"
-    bin.install "ytsurf"
+    system "mv ytsurf.sh ytsurf-downloader"
+    bin.install "ytsurf-downloader"
   end
 
   test do
-    system "ytsurf"
+    system "ytsurf-downloader"
   end
 end

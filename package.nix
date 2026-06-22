@@ -4,6 +4,7 @@
   fzf,
   jq,
   lib,
+  libnotify,
   makeWrapper,
   mpv,
   perl,
@@ -31,6 +32,7 @@ stdenvNoCC.mkDerivation {
         ffmpeg
         fzf
         jq
+        libnotify
         mpv
         perl
         yt-dlp

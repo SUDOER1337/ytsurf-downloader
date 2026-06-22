@@ -74,7 +74,7 @@ OPTIONS:
   --audio         Download/watch audio-only version
   --download, -d  Download instead of playing
   --format, -f    Interactively choose format/resolution
-  --convert-to, -c <FMT>  Convert downloads to format via ffmpeg (opus, mp3, mkv, etc.)
+  --convert-to, -c <FMT>  Convert audio downloads to format (opus, mp3, flac, etc.)
   --limit, -l <N> Limit search results (default: $DEFAULT_LIMIT)
   --playlist, -p <URL>  Download an entire playlist, channel, or user uploads
   --debug         Enable debug logging
@@ -304,11 +304,7 @@ download_video() {
       yt_dlp_args+=(--audio-format mp3)
     fi
   else
-    if [[ -n "$convert_to" ]]; then
-      yt_dlp_args+=(--recode-video "$convert_to")
-    else
-      yt_dlp_args+=(--remux-video mp4)
-    fi
+    yt_dlp_args+=(--remux-video mp4)
     if [[ -n "$fmt" ]]; then
       yt_dlp_args+=(--format "$fmt")
     fi
@@ -352,11 +348,7 @@ download_playlist() {
       yt_dlp_args+=(--audio-format mp3)
     fi
   else
-    if [[ -n "$convert_to" ]]; then
-      yt_dlp_args+=(--recode-video "$convert_to")
-    else
-      yt_dlp_args+=(--remux-video mp4)
-    fi
+    yt_dlp_args+=(--remux-video mp4)
     [[ -n "$format_code" ]] && yt_dlp_args+=(--format "$format_code")
   fi
 

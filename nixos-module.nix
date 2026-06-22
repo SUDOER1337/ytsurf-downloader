@@ -26,9 +26,8 @@ in {
       default = null;
       example = "opus";
       description = ''
-        Convert downloaded media to this format via ffmpeg.
-        For audio-only downloads, this sets the audio format (opus, mp3, m4a, etc.).
-        For video downloads, this recodes the container (mkv, mp4, webm, etc.).
+        Convert audio downloads to this format via ffmpeg.
+        Only applies when audio-only mode is active (opus, mp3, flac, m4a, etc.).
       '';
     };
 

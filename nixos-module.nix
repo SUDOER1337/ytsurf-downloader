@@ -26,8 +26,8 @@ in {
       default = null;
       example = "opus";
       description = ''
-        Convert audio downloads to this format via ffmpeg.
-        Only applies when audio-only mode is active (opus, mp3, flac, m4a, etc.).
+        Download and convert to this audio format via ffmpeg.
+        Implies audio-only mode (opus, mp3, flac, m4a, etc.).
       '';
     };
 

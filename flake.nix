@@ -15,5 +15,10 @@
       packages = nixpkgs.lib.genAttrs nixpkgs.lib.systems.flakeExposed (system: {
         default = nixpkgs.legacyPackages.${system}.callPackage ./package.nix { };
       });
+
+      nixosModules = {
+        ytsurf-downloader = import ./nixos-module.nix;
+        default = import ./nixos-module.nix;
+      };
     };
 }

@@ -7,6 +7,7 @@ Single-file Bash application at `ytsurf.sh` (~490 lines). No build step, no test
 ## Commands
 
 - **Syntax check**: `bash -n ytsurf.sh` — run before committing
+- **Nix check**: `nix-instantiate --parse nixos-module.nix && nix-instantiate --parse flake.nix`
 - **Bump version**: update `SCRIPT_VERSION` in `ytsurf.sh:17`, version in `ytsurf.rb:6`, and `package.nix:16`
 - **Run the script**: `./ytsurf.sh [OPTIONS] [QUERY]`
 
@@ -27,7 +28,7 @@ Single-file Bash application at `ytsurf.sh` (~490 lines). No build step, no test
 
 ## Packaging
 
-- **Nix**: `flake.nix` + `package.nix`; wraps script with `wrapProgram` to add deps to `PATH`
+- **Nix**: `flake.nix` + `package.nix` + `nixos-module.nix`; package wraps script with `wrapProgram` to add deps to `PATH`; NixOS module writes `/etc/ytsurf-downloader/config` as system-level defaults (user config at `~/.config/ytsurf-downloader/config` overrides)
 - **Homebrew**: formula at `ytsurf.rb`; version must match `ytsurf.sh`
 
 ## Dependencies

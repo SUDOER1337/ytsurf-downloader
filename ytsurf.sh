@@ -22,6 +22,7 @@ DEFAULT_AUDIO_ONLY=false
 DEFAULT_DOWNLOAD_MODE=false
 DEFAULT_FORMAT_SELECTION=false
 DEFAULT_NOTIFY=true
+DEFAULT_CONVERT_TO=""
 
 # System directories
 readonly CACHE_DIR="${XDG_CACHE_HOME:-$HOME/.cache}/$SCRIPT_NAME"
@@ -40,6 +41,7 @@ format_selection="$DEFAULT_FORMAT_SELECTION"
 format_code="bestvideo[height<=720]+bestaudio/best"
 download_dir="${XDG_DOWNLOAD_DIR:-$HOME/Downloads}"
 notify="$DEFAULT_NOTIFY"
+convert_to="$DEFAULT_CONVERT_TO"
 
 query=""
 playlist_url=""
@@ -72,6 +74,7 @@ OPTIONS:
   --audio         Download/watch audio-only version
   --download, -d  Download instead of playing
   --format, -f    Interactively choose format/resolution
+  --convert-to, -c <FMT>  Convert downloads to format via ffmpeg (opus, mp3, mkv, etc.)
   --limit, -l <N> Limit search results (default: $DEFAULT_LIMIT)
   --playlist, -p <URL>  Download an entire playlist, channel, or user uploads
   --debug         Enable debug logging
@@ -87,6 +90,7 @@ CONFIG:
     limit=5
     audio_only=true
     download_dir="\$HOME/Videos/YouTube"
+    convert_to=opus
 
 EXAMPLES:
   $SCRIPT_NAME lo-fi study mix
@@ -108,6 +112,11 @@ print_version() {
 configuration() {
   mkdir -p "$CACHE_DIR" "$CONFIG_DIR"
 
+  # Source system-level defaults from NixOS module first, then user config overrides
+  readonly SYSTEM_CONFIG_FILE="/etc/$SCRIPT_NAME/config"
+  # shellcheck disable=SC1090
+  [ -f "$SYSTEM_CONFIG_FILE" ] && source "$SYSTEM_CONFIG_FILE"
+
   if [ ! -f "$CONFIG_FILE" ]; then
     cat >"$CONFIG_FILE" <<'EOF'
 #limit=10
@@ -116,6 +125,7 @@ configuration() {
 #format_selection=false
 #download_dir="$HOME/Downloads"
 #notify=true
+#convert_to=
 #debug_mode=false
 EOF
   fi
@@ -185,6 +195,16 @@ parse_arguments() {
       BASH_XTRACEFD=3
       set -x
       shift
+      ;;
+    --convert-to | -c)
+      shift
+      if [[ -n "${1:-}" ]]; then
+        convert_to="$1"
+        shift
+      else
+        send_notification "Error" "--convert-to requires a format (e.g., opus, mp3, mkv)"
+        exit 1
+      fi
       ;;
     --limit | -l)
       shift
@@ -277,9 +297,18 @@ download_video() {
   )
 
   if [[ "$audio_only" = true ]]; then
-    yt_dlp_args+=(-x --audio-format mp3)
+    yt_dlp_args+=(-x)
+    if [[ -n "$convert_to" ]]; then
+      yt_dlp_args+=(--audio-format "$convert_to")
+    else
+      yt_dlp_args+=(--audio-format mp3)
+    fi
   else
-    yt_dlp_args+=(--remux-video mp4)
+    if [[ -n "$convert_to" ]]; then
+      yt_dlp_args+=(--recode-video "$convert_to")
+    else
+      yt_dlp_args+=(--remux-video mp4)
+    fi
     if [[ -n "$fmt" ]]; then
       yt_dlp_args+=(--format "$fmt")
     fi
@@ -316,9 +345,18 @@ download_playlist() {
   )
 
   if [[ "$audio_only" = true ]]; then
-    yt_dlp_args+=(-x --audio-format mp3)
+    yt_dlp_args+=(-x)
+    if [[ -n "$convert_to" ]]; then
+      yt_dlp_args+=(--audio-format "$convert_to")
+    else
+      yt_dlp_args+=(--audio-format mp3)
+    fi
   else
-    yt_dlp_args+=(--remux-video mp4)
+    if [[ -n "$convert_to" ]]; then
+      yt_dlp_args+=(--recode-video "$convert_to")
+    else
+      yt_dlp_args+=(--remux-video mp4)
+    fi
     [[ -n "$format_code" ]] && yt_dlp_args+=(--format "$format_code")
   fi
 
